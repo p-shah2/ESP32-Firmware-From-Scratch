@@ -11,14 +11,14 @@ CFLAGS = -Wall -std=gnu11 -mlongcalls -nostartfiles -mtext-section-literals
 
 all: main.elf
 
-main.elf:	startup.o main.o
-	$(CC) $(CFLAGS) -T linker.ld -o main.elf startup.o main.o
+main.elf: startup.o main.o
+	$(CC) $(CFLAGS) -T linker.ld -o build/main.elf build/startup.o build/main.o
 
 startup.o:	startup.c
-	$(CC) $(CFLAGS) -c startup.c -o startup.o
+	$(CC) $(CFLAGS) -c startup.c -o build/startup.o
 
 main.o: main.c
-	$(CC) $(CFLAGS) -c main.c -o main.o
+	$(CC) $(CFLAGS) -c main.c -o build/main.o
 
 clean:
 	rm -rf *.o *.elf
