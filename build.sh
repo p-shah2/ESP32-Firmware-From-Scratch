@@ -4,4 +4,4 @@
 
 # simple build script
 make clean
-make
+make 

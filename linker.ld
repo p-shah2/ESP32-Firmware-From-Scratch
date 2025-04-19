@@ -3,37 +3,48 @@
 @date: Apr 17, 2025
 */
 
-ENTRY(_start);
+ENTRY(call_start_cpu0);
 
 MEMORY {
-    iram (rx): ORIGIN = 0x40080000, LENGTH = 128K
-    dram (rw): ORIGIN = 0x3FFE0000, LENGTH = 128K
+    iram (rx): ORIGIN = 0x40080000, len = 128K
+    dram (rw): ORIGIN = 0x3FFE0000, len = 128K
 }
 
 SECTIONS {
     .text :
     {
+        . = ALIGN(16);
+        KEEP(*(.entry.text))
+
         *(.text)
         *(.text*)
+
+        *(.rodata)
+        *(.rodata*)
+        . = ALIGN(4);
     } > iram
 
-    .data : AT(0x10000)
+    _sidata = .;
+    .data : AT(_sidata)
     {
-        __data_start = .;
+        . = ALIGN(4);
+        _sdata = .;
         *(.data)
-        __data_end = .;
+        *(.data*)
+        . = ALIGN(4);
+        _edata = .;
     } > dram
-
-    __data_load_addr = LOADADDR(.data);
-
+ 
     .bss :
     {
-        __bss_start = .;
+        . = ALIGN(4);
+        _sbss = .;
         *(.bss)
-        __bss_end = .;
+        *(.bss*)
+        *(COMMON)
+        . = ALIGN(4);
+        _ebss = .;
     } > dram
 
-    __bss_size = __bss_end - __bss_start;
-    __data_size = __data_end - __data_start;
 
 }

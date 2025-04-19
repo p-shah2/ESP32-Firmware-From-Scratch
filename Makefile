@@ -4,21 +4,23 @@
 
 CC = xtensa-esp32-elf-gcc 
 LD = xtensa-esp32-elf-ld
+OBJCOPY = xtensa-esp32-elf-objcopy
+
 
 # added -mtext-section-literals flag to resolve dangerous relocation error 
-CFLAGS = -Wall -std=gnu11 -mlongcalls -nostartfiles -mtext-section-literals
+CFLAGS  = -mlongcalls -nostartfiles -mtext-section-literals  -fstrict-volatile-bitfields -Wall -Werror -std=gnu11 -nostdlib -fno-strict-aliasing -fdata-sections -ffunction-sections -Os -g
+LDFLAGS = -mlongcalls -nostartfiles -mtext-section-literals  -fstrict-volatile-bitfields -nostdlib -lm -lc -lgcc 
 
+all: build/main.elf
 
-all: main.elf
+build/main.elf: build/startup.o build/main.o
+	$(CC)  -T linker.ld -o build/main.elf build/startup.o build/main.o $(LDFLAGS)
 
-main.elf: startup.o main.o
-	$(CC) $(CFLAGS) -T linker.ld -o build/main.elf build/startup.o build/main.o
+build/startup.o:	startup.c
+	$(CC) -c startup.c -o build/startup.o $(CFLAGS)
 
-startup.o:	startup.c
-	$(CC) $(CFLAGS) -c startup.c -o build/startup.o
-
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c -o build/main.o
+build/main.o: main.c
+	$(CC) -c main.c -o build/main.o $(CFLAGS)
 
 clean:
-	rm -rf *.o *.elf
+	rm -rf *.o *.elf *.bin build/*.o build/*.elf build/*.bin
