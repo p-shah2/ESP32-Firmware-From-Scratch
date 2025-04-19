@@ -12,11 +12,14 @@ LINKER_SCRIPT = $(LINKER_DIR)/linker.ld
 STARTUP_DIR = startup
 
 
-SRCS = $(SRC_DIR)/main.c \	
+SRCS = $(SRC_DIR)/main.c \
+	$(wildcard $(SRC_DIR)/drivers/gpio/*.c) \
+	$(STARTUP_DIR)/startup.c
 
-OBJS = $(BUILD_DIR)/main.o \
-       $(BUILD_DIR)/startup.o
 
+# OBJS = $(BUILD_DIR)/main.o \
+#        $(BUILD_DIR)/startup.o
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(filter %.c, $(SRCS)))
 
 # added -mtext-section-literals flag to resolve dangerous relocation error 
 CFLAGS  = -mlongcalls -nostartfiles -mtext-section-literals  -fstrict-volatile-bitfields -Wall -Werror -std=gnu11 -nostdlib -fno-strict-aliasing -fdata-sections -ffunction-sections -Os -g
@@ -30,11 +33,6 @@ $(BUILD_DIR)/main.elf: $(OBJS)
 
 # Compiling step for all .c files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-# Compile startup file
-$(BUILD_DIR)/%.o: $(STARTUP_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
