@@ -13,16 +13,23 @@ STARTUP_DIR = startup
 
 
 SRCS = $(SRC_DIR)/main.c \
-	$(wildcard $(SRC_DIR)/drivers/gpio/*.c) \
+	$(SRC_DIR)/drivers/gpio/gpio.c \
 	$(STARTUP_DIR)/startup.c
 
+INCLUDE_DIRS = $(SRC_DIR)/drivers/gpio/include
 
-# OBJS = $(BUILD_DIR)/main.o \
-#        $(BUILD_DIR)/startup.o
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(filter %.c, $(SRCS)))
+
+# OBJS =  $(BUILD_DIR)/main.o \
+# 	    $(BUILD_DIR)/gpio.o \
+#         $(BUILD_DIR)/startup.o
+
+OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(notdir $(SRCS)))
+
 
 # added -mtext-section-literals flag to resolve dangerous relocation error 
-CFLAGS  = -mlongcalls -nostartfiles -mtext-section-literals  -fstrict-volatile-bitfields -Wall -Werror -std=gnu11 -nostdlib -fno-strict-aliasing -fdata-sections -ffunction-sections -Os -g
+CFLAGS  = $(foreach dir, $(INCLUDE_DIRS), -I$(dir)) \
+			-mlongcalls -nostartfiles -mtext-section-literals  -fstrict-volatile-bitfields -Wall -Werror -std=gnu11 -nostdlib -fno-strict-aliasing -fdata-sections -ffunction-sections -Os -g
+
 LDFLAGS = -mlongcalls -nostartfiles -mtext-section-literals  -fstrict-volatile-bitfields -nostdlib -lm -lc -lgcc 
 
 all: $(BUILD_DIR)/main.elf
@@ -32,9 +39,10 @@ $(BUILD_DIR)/main.elf: $(OBJS)
 	$(CC)  -T $(LINKER_SCRIPT) -o $@ $^ $(LDFLAGS)
 
 # Compiling step for all .c files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/%.o:
 	@mkdir -p $(BUILD_DIR)
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) -c $(filter %/$*.c,$(SRCS)) -o $@ $(CFLAGS)
+
 
 clean:
 	rm -rf *.o *.elf *.bin $(BUILD_DIR)/*.o $(BUILD_DIR)/*.elf $(BUILD_DIR)/*.bin

@@ -2,16 +2,7 @@
 // @date: Apr 17, 2025
 
 #include <stdint.h>
-
-#define GPIO_OUT_REG_ADDR       0x3FF44004 // 1 for enabled output
-#define GPIO_ENABLE_REG_ADDR    0x3FF44020
-
-
-#define GPIO_OUT_REG           (*(volatile uint32_t *)GPIO_OUT_REG_ADDR)
-#define GPIO_ENABLE_REG        (*(volatile uint32_t *)GPIO_ENABLE_REG_ADDR)
-
-#define UART0_FIFO_REG 0x3FF40078
-
+#include "gpio.h"
 
 void delay(volatile int count) {
     while (count--) {
@@ -20,16 +11,25 @@ void delay(volatile int count) {
 }
 
 
-
 int main(void){
+    uint8_t gpio2 = 2;
+    gpio_set_direction(gpio2, GPIO_OUTPUT);
+    gpio_set_pin_level(gpio2);
     
-    GPIO_ENABLE_REG |= (1 << 2);
-    while (1){
-       GPIO_OUT_REG|= (1 << 2);
-      delay(1000000);
 
-      GPIO_OUT_REG &= ~(1 << 2);
-      delay(1000000);
+    while (1){
+      if(gpio_get_pin_level(gpio2) == 1){
+        gpio_clear_pin_level(gpio2);
+        delay(100000);
+        gpio_set_pin_level(gpio2);
+        delay(100000);
+      }
+      else{
+        gpio_clear_pin_level(gpio2);
+      }
+      
+      //delay(1000000);
+      
     }
 
     return 0;
